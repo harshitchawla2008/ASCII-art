@@ -86,18 +86,17 @@
   #ascii-output {
     flex: 1;
     overflow: hidden;
-    padding: 8px 10px;
+    padding: 0;
     line-height: 1.0;
     font-size: 7px;
-    letter-spacing: 1px;
+    letter-spacing: 0px;
     white-space: pre;
     color: var(--green);
     text-shadow: 0 0 3px rgba(0,255,65,0.4);
     background: var(--bg);
-    word-break: break-all;
-    overflow-wrap: anywhere;
     cursor: default;
     user-select: none;
+    display: block;
   }
 
   #ascii-output.amber { color: var(--amber); text-shadow: 0 0 3px rgba(255,184,0,0.4); }
@@ -427,8 +426,16 @@ function renderFrame() {
   if (!running || video.readyState < 2) { animFrame = requestAnimationFrame(renderFrame); return; }
 
   const cols = parseInt(resSlider.value);
-  const aspect = video.videoHeight / video.videoWidth;
-  const rows = Math.round(cols * aspect * 0.45);
+
+  // Fit font so exactly `cols` chars fill the output width
+  // Share Tech Mono charWidth ≈ fontSize * 0.601
+  const CHAR_RATIO = 0.601;
+  const fontSize = output.clientWidth / cols / CHAR_RATIO;
+  output.style.fontSize = fontSize + 'px';
+  output.style.lineHeight = '1.0';
+
+  // Rows = how many lines fit in the full output height
+  const rows = Math.max(1, Math.floor(output.clientHeight / fontSize));
 
   canvas.width  = cols;
   canvas.height = rows;
